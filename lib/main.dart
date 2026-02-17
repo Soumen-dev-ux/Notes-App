@@ -4,9 +4,10 @@
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:noteapp/Screens/notes_screen.dart';
 
 void main(){
-  runApp(app)
+  runApp(NotesApp())
 }
 
 class NotesApp extends StatelessWidget {
@@ -19,7 +20,7 @@ class NotesApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blueGrey
       ),
-      home: const,
+      home: const NotesScreen(),
     );
   }
 }
