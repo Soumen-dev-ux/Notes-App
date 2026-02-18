@@ -16,9 +16,9 @@ class NotesDatabase {
     return _database!;
   }
 
-  Future<sqflite.Stringse> _initDB(String filePath)  async {
-    final dpPath = await sqflite.getDatabasePath();
-    final path = join(dpPath, filePath);
+  Future<sqflite.Database> _initDB(String filePath) async {
+    final dbPath = await sqflite.getDatabasesPath();
+    final path = join(dbPath, filePath);
 
     return await sqflite.openDatabase(
       path,
@@ -28,13 +28,17 @@ class NotesDatabase {
 
   }
   Future _createDB(sqflite.Database db, int version) async{
+    final idType = 'INTEGER PRIMARY KEY AUTOINCREMENT';
+    final textType = 'TEXT NOT NULL';
+    final intType = 'INTEGER NOT NULL';
+    
     await db.execute('''
       CREATE TABLE notes(
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        title TEXT NOT NULL,
-        description TEXT NOT NULL,
-        date TEXT NOT NULL,
-        color INTEGER NOT NULL DEFAULT 0
+        id $idType,
+        title $textType,
+        description $textType,
+        date $textType,
+        color $intType
     )
     ''');
   }
