@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:noteapp/notes_database/notes_database.dart';
 import 'package:noteapp/Screens/note_editor_screen.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import 'package:noteapp/theme_provider.dart';
 
 class NotesScreen extends StatefulWidget {
   const NotesScreen({super.key});
@@ -41,20 +43,24 @@ class _NotesScreenState extends State<NotesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    
     return Scaffold(
-      backgroundColor: const Color(0xFF1A1A1A), // Dark aesthetic background
+      // backgroundColor: handled by Theme
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
+        // properties handled by Theme
         title: const Text(
           'Notes',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 28,
-            fontWeight: FontWeight.w600,
-          ),
         ),
         centerTitle: false,
+        actions: [
+          IconButton(
+            icon: Icon(themeProvider.isDarkMode ? Icons.light_mode : Icons.dark_mode),
+            onPressed: () {
+              themeProvider.toggleTheme();
+            },
+          ),
+        ],
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -64,7 +70,7 @@ class _NotesScreenState extends State<NotesScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(Icons.note_alt_outlined,
-                          size: 100, color: Colors.grey[800]),
+                          size: 100, color: Theme.of(context).dividerColor),
                       const SizedBox(height: 16),
                       Text(
                         'Create your first note',
@@ -79,9 +85,14 @@ class _NotesScreenState extends State<NotesScreen> {
                   itemCount: notes.length,
                   itemBuilder: (context, index) {
                     final note = notes[index];
-                    final color = note['color'] != null && note['color'] != 0
+                    final noteColor = note['color'] != null && note['color'] != 0
                         ? Color(note['color'])
                         : const Color(0xFF333333);
+                        
+                    // Determine text color based on note brightness
+                    final isNoteDark = ThemeData.estimateBrightnessForColor(noteColor) == Brightness.dark;
+                    final textColor = isNoteDark ? Colors.white : Colors.black;
+                    final secondaryTextColor = isNoteDark ? Colors.white70 : Colors.black54;
                         
                     return Dismissible(
                       key: Key(note['id'].toString()),
@@ -98,17 +109,18 @@ class _NotesScreenState extends State<NotesScreen> {
                       direction: DismissDirection.endToStart,
                       onDismissed: (direction) async {
                         await NotesDatabase.instance.deleteNote(note['id']);
+                        if (!mounted) return;
                         // Remove item from list immediately to avoid jitter before refresh
                         setState(() {
                           notes.removeAt(index);
                         });
-                        ScaffoldMessenger.of(context).showSnackBar(
+                        ScaffoldMessenger.of(this.context).showSnackBar(
                           const SnackBar(content: Text('Note deleted')),
                         );
                         refreshNotes(); // Ensure sync
                       },
                       child: Card(
-                        color: color,
+                        color: noteColor,
                         margin: const EdgeInsets.only(bottom: 12),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
@@ -135,8 +147,8 @@ class _NotesScreenState extends State<NotesScreen> {
                                     Expanded(
                                       child: Text(
                                         note['title'],
-                                        style: const TextStyle(
-                                          color: Colors.white,
+                                        style: TextStyle(
+                                          color: textColor,
                                           fontSize: 20,
                                           fontWeight: FontWeight.bold,
                                         ),
@@ -152,8 +164,8 @@ class _NotesScreenState extends State<NotesScreen> {
                                 const SizedBox(height: 8),
                                 Text(
                                   note['description'],
-                                  style: const TextStyle(
-                                      color: Colors.white70, fontSize: 16),
+                                  style: TextStyle(
+                                      color: secondaryTextColor, fontSize: 16),
                                   maxLines: 3,
                                   overflow: TextOverflow.ellipsis,
                                 ),
@@ -161,7 +173,7 @@ class _NotesScreenState extends State<NotesScreen> {
                                 Text(
                                   _formatDate(note['date']),
                                   style: TextStyle(
-                                    color: Colors.white.withOpacity(0.5),
+                                    color: secondaryTextColor.withValues(alpha: 0.5),
                                     fontSize: 12,
                                   ),
                                 ),

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:noteapp/notes_database/notes_database.dart';
-import 'package:intl/intl.dart';
+
 
 class NoteEditorScreen extends StatefulWidget {
   final Map<String, dynamic>? note;
@@ -90,7 +90,7 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
                         ),
                         boxShadow: [
                            BoxShadow(
-                             color: Colors.black.withOpacity(0.2),
+                             color: Colors.black.withValues(alpha: 0.2),
                              blurRadius: 4,
                            )
                         ]
